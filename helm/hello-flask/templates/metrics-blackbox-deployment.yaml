@@ -1,0 +1,47 @@
+{{- if and .Values.metrics.blackbox.enabled .Values.metrics.blackbox.createExporter }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "hello-flask.fullname" . }}-blackbox
+  labels:
+    app.kubernetes.io/name: blackbox-exporter
+    {{- include "hello-flask.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: blackbox-exporter
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: blackbox-exporter
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: blackbox-exporter
+          image: {{ .Values.metrics.blackbox.exporterImage | quote }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 9115
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: "20m"
+              memory: "32Mi"
+            limits:
+              cpu: "100m"
+              memory: "128Mi"
+{{- end }}

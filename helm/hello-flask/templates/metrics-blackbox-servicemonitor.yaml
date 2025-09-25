@@ -1,0 +1,27 @@
+{{- if and .Values.metrics.blackbox.enabled .Values.metrics.blackbox.createExporter .Values.metrics.blackbox.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "hello-flask.fullname" . }}-blackbox
+  labels:
+    {{- include "hello-flask.labels" . | nindent 4 }}
+    {{- with .Values.metrics.blackbox.serviceMonitor.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: blackbox-exporter
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  endpoints:
+    - port: http
+      path: /probe
+      interval: {{ .Values.metrics.blackbox.serviceMonitor.interval | quote }}
+      scrapeTimeout: {{ .Values.metrics.blackbox.serviceMonitor.scrapeTimeout | quote }}
+      params:
+        module: [{{ .Values.metrics.blackbox.module | quote }}]
+        target: [{{ .Values.metrics.blackbox.targetUrl | quote }}]
+      relabelings:
+        - sourceLabels: [__param_target]
+          targetLabel: instance
+{{- end }}

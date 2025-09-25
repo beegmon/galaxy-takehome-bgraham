@@ -1,0 +1,6 @@
+apiVersion: v2
+name: hello-flask
+description: A production-ready Helm chart for deploying the Hello Flask web app
+type: application
+version: 0.3.0
+appVersion: "1.0.0"

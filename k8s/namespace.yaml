@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: hello-flask
+  labels:
+    app.kubernetes.io/part-of: webapps
+    app.kubernetes.io/name: hello-flask
+    # PSA: enforce restricted policy
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted

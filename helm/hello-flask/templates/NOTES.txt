@@ -1,0 +1,9 @@
+1. Get the application URL by running these commands:
+{{- if and .Values.ingress.enabled (not .Values.gatewayApi.enabled) }}
+  echo "URL(s):"
+  {{- range .Values.ingress.hosts }}
+  echo "  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}/"
+  {{- end }}
+{{- else }}
+  echo "Route created via Gateway API. Check your Gateway status and hostnames."
+{{- end }}

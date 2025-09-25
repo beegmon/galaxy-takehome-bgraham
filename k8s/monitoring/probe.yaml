@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: hello-flask-probe
+  namespace: hello-flask
+  labels:
+    release: prometheus   # adjust for your Prometheus selector
+spec:
+  prober:
+    url: http://blackbox-exporter.monitoring.svc:9115   # shared exporter URL
+  module: http_2xx
+  targets:
+    staticConfig:
+      static:
+        - https://hello.example.com/
+      labels:
+        app: hello-flask

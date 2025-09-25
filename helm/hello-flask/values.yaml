@@ -1,0 +1,114 @@
+replicaCount: 3
+
+image:
+  repository: your-registry/hello-flask
+  tag: "0.1.0"
+  # If digest is provided, chart will use repo@sha256:<digest> and ignore tag
+  digest: ""
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  create: true
+  name: ""
+  automount: false
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8000
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/hsts: "true"
+  hosts:
+    - host: hello.example.com
+      # paths optional; chart defaults to "/" if omitted
+      # paths:
+      #   - path: /
+      #     pathType: Prefix
+  tls:
+    - secretName: hello-flask-tls
+      hosts:
+        - hello.example.com
+
+gatewayApi:
+  enabled: false
+  # When enabled, the chart renders an HTTPRoute and skips Ingress.
+  gatewayRef:
+    name: web
+    namespace: hello-flask
+
+resources:
+  requests:
+    cpu: "50m"
+    memory: "64Mi"
+  limits:
+    cpu: "250m"
+    memory: "256Mi"
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 60
+
+pdb:
+  enabled: true
+  minAvailable: 2
+
+networkPolicy:
+  enabled: true
+  allowIngressFrom:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ingress-nginx
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: ingress-nginx
+  allowEgressToDNS: true
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+
+topologySpreadConstraints:
+  enabled: true
+  whenUnsatisfiable: ScheduleAnyway
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+nameOverride: ""
+fullnameOverride: ""
+
+metrics:
+  blackbox:
+    enabled: false
+    # Prefer shared exporter by default for cost efficiency
+    createExporter: false
+    exporterImage: "prom/blackbox-exporter:v0.25.0"
+    # URL to the shared blackbox exporter (Probe CRD). Example: http://blackbox-exporter.monitoring.svc:9115
+    proberUrl: ""
+    targetUrl: "https://hello.example.com/"
+    module: "http_2xx"
+    useProbe: true     # When true, render a Probe CRD (Prometheus Operator)
+    serviceMonitor:
+      enabled: true    # Only relevant if createExporter=true (local exporter)
+      interval: "30s"
+      scrapeTimeout: "10s"
+      additionalLabels: {}

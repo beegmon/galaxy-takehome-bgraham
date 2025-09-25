@@ -1,0 +1,18 @@
+{{- if and .Values.metrics.blackbox.enabled .Values.metrics.blackbox.useProbe }}
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: {{ include "hello-flask.fullname" . }}-probe
+  labels:
+    {{- include "hello-flask.labels" . | nindent 4 }}
+spec:
+  prober:
+    url: {{ required "metrics.blackbox.proberUrl is required when useProbe=true" .Values.metrics.blackbox.proberUrl | quote }}
+  module: {{ .Values.metrics.blackbox.module | quote }}
+  targets:
+    staticConfig:
+      static:
+        - {{ .Values.metrics.blackbox.targetUrl | quote }}
+      labels:
+        app_k8s: {{ include "hello-flask.fullname" . | quote }}
+{{- end }}

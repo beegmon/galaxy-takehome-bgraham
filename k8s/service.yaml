@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-flask
+  namespace: hello-flask
+  labels:
+    app.kubernetes.io/name: hello-flask
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: hello-flask
+    app.kubernetes.io/component: web
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000
+      protocol: TCP

@@ -1,0 +1,18 @@
+{{- if and .Values.metrics.blackbox.enabled .Values.metrics.blackbox.createExporter }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "hello-flask.fullname" . }}-blackbox
+  labels:
+    app.kubernetes.io/name: blackbox-exporter
+    {{- include "hello-flask.labels" . | nindent 4 }}
+spec:
+  selector:
+    app.kubernetes.io/name: blackbox-exporter
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    - name: http
+      port: 9115
+      targetPort: 9115
+      protocol: TCP
+{{- end }}

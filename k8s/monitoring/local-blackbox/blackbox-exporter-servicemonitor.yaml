@@ -1,0 +1,26 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: hello-flask-blackbox
+  namespace: hello-flask
+  labels:
+    release: prometheus   # adjust to match your Prometheus selector
+spec:
+  selector:
+    matchLabels:
+      app: blackbox-exporter
+  endpoints:
+    - port: http
+      path: /probe
+      interval: 30s
+      scrapeTimeout: 10s
+      params:
+        module: [http_2xx]
+        target: ["https://hello.example.com/"]
+      relabelings:
+        - sourceLabels: [__param_target]
+          targetLabel: instance
+      metricRelabelings:
+        - action: keep
+          sourceLabels: [__name__]
+          regex: "probe_success|probe_duration_seconds|probe_http_status_code"
